@@ -1,6 +1,11 @@
 esptool.exe
 .pio/
 .pio-out/
+sdkconfig
+sdkconfig.old
+sdkconfig.defaults
+dependencies.lock
+managed_components/
 .vscode/
 .idea/
 *.swp

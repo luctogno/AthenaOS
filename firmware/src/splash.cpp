@@ -1,4 +1,5 @@
 #include "splash.h"
+#include "audio.h"
 #include "display.h"
 #include "boards/board.h"
 #include "splash_embed.h"
@@ -8,6 +9,7 @@
 static unsigned long splashStart = 0;
 static const unsigned long SPLASH_MS = 2200;
 static uint8_t lastPct = 0;
+static bool beeped = false;
 static const int16_t BAR_H = 6;
 
 static int jpegBlit(JPEGDRAW *draw) {
@@ -26,6 +28,7 @@ static void drawBarFill(uint8_t pct) {
 void Splash::begin() {
     splashStart = millis();
     lastPct = 0;
+    beeped = false;
 
     Display::fillScreen(COLOR_BG);
     Display::fillRect(0, SCREEN_HEIGHT - BAR_H, SCREEN_WIDTH, BAR_H, COLOR_PANEL);
@@ -49,6 +52,10 @@ bool Splash::update() {
     if (pct > lastPct) {
         drawBarFill(pct);
         lastPct = pct;
+    }
+    if (!beeped && pct >= 90) {
+        beeped = true;
+        Audio::playTest(200);
     }
     return elapsed >= SPLASH_MS;
 }

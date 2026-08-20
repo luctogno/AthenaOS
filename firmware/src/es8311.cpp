@@ -13,6 +13,17 @@ static i2s_chan_handle_t rxHandle = nullptr;
 static bool paOn = false;
 static bool i2sStarted = false;
 
+static void deleteI2s() {
+    if (txHandle) {
+        i2s_del_channel(txHandle);
+        txHandle = nullptr;
+    }
+    if (rxHandle) {
+        i2s_del_channel(rxHandle);
+        rxHandle = nullptr;
+    }
+}
+
 bool Es8311::writeReg(uint8_t reg, uint8_t val) {
     Wire.beginTransmission((uint8_t)AUDIO_I2C_ADDR);
     Wire.write(reg);
@@ -102,10 +113,22 @@ bool Es8311::initI2s() {
     stdCfg.gpio_cfg.din = GPIO_NUM_NC;
 #endif
 
-    if (txHandle && i2s_channel_init_std_mode(txHandle, &stdCfg) != ESP_OK) return false;
-    if (rxHandle && i2s_channel_init_std_mode(rxHandle, &stdCfg) != ESP_OK) return false;
-    if (txHandle && i2s_channel_enable(txHandle) != ESP_OK) return false;
-    if (rxHandle && i2s_channel_enable(rxHandle) != ESP_OK) return false;
+    if (txHandle && i2s_channel_init_std_mode(txHandle, &stdCfg) != ESP_OK) {
+        deleteI2s();
+        return false;
+    }
+    if (rxHandle && i2s_channel_init_std_mode(rxHandle, &stdCfg) != ESP_OK) {
+        deleteI2s();
+        return false;
+    }
+    if (txHandle && i2s_channel_enable(txHandle) != ESP_OK) {
+        deleteI2s();
+        return false;
+    }
+    if (rxHandle && i2s_channel_enable(rxHandle) != ESP_OK) {
+        deleteI2s();
+        return false;
+    }
     return true;
 }
 
