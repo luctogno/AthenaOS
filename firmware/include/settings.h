@@ -37,9 +37,10 @@ public:
     static bool ntpSynced();
 
     static const char *lang();
-    static bool langIsIt();
+    static const char *langLabel();
     static void setLang(const char *id);
-    static void toggleLang();
+    static void nextLang();
+    static void factoryReset();
 
 private:
     static void load();

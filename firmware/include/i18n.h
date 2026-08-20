@@ -35,12 +35,27 @@ enum I18nId : uint8_t {
     I18N_NO_APPS,
     I18N_TAP_OPEN,
     I18N_HOLD_HOME,
+    I18N_FACTORY,
+    I18N_FACTORY_Q,
+    I18N_FACTORY_HINT,
+    I18N_LANGUAGE,
+    I18N_SOUND,
+    I18N_MIC,
+    I18N_PLAY,
+    I18N_PLAYING,
+    I18N_TEST,
+    I18N_LISTENING,
+    I18N_NA,
     I18N_COUNT
 };
 
 class I18n {
 public:
     static const char *t(I18nId id);
+    static int langCount();
+    static const char *langId(int index);
+    static const char *langLabel(int index);
+    static int langIndex(const char *id);
 };
 
 #endif

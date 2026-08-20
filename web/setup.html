@@ -136,7 +136,7 @@ function toast(msg) {
 }
 async function loadStatus() {
   const j = await (await fetch("/api/status")).json();
-  const next = (j.settings && j.settings.lang === "it") ? "it" : "en";
+  const next = (j.settings && j.settings.lang) || "en";
   if (next !== lang) { lang = next; applyLang(); }
   const ap = j.system && j.system.ap;
   if (ap && ap.ssid) $("ap").textContent = ap.ssid;

@@ -4,6 +4,7 @@
 #include "boards/board.h"
 #include "app_manager.h"
 #include "settings.h"
+#include "i18n.h"
 #include "power.h"
 #include "log_buffer.h"
 
@@ -103,7 +104,16 @@ static String statusJson() {
     j += Settings::ntpSynced() ? "true" : "false";
     j += ",\"lang\":\"";
     jsonEscapeAppend(j, Settings::lang());
-    j += "\"},\"apps\":[";
+    j += "\",\"langs\":[";
+    for (int i = 0; i < I18n::langCount(); i++) {
+        if (i) j += ',';
+        j += "{\"id\":\"";
+        jsonEscapeAppend(j, I18n::langId(i));
+        j += "\",\"label\":\"";
+        jsonEscapeAppend(j, I18n::langLabel(i));
+        j += "\"}";
+    }
+    j += "]},\"apps\":[";
     for (int i = 0; i < g_appManager.getAppCount(); i++) {
         App *app = g_appManager.getApp(i);
         if (!app) continue;
@@ -278,6 +288,11 @@ static void handlePowerOff() {
     Power::off();
 }
 
+static void handleFactoryReset() {
+    sendJson(200, F("{\"ok\":true}"));
+    Settings::factoryReset();
+}
+
 static void handleLog() {
     String body;
     LogBuffer::copyTo(body);
@@ -322,6 +337,7 @@ static void beginServer() {
     console.on("/api/apps/install", HTTP_POST, handleInstall);
     console.on("/api/restart", HTTP_POST, handleRestart);
     console.on("/api/poweroff", HTTP_POST, handlePowerOff);
+    console.on("/api/factory-reset", HTTP_POST, handleFactoryReset);
     console.on("/api/log", HTTP_GET, handleLog);
     console.onNotFound([]() {
         if (WiFi.status() != WL_CONNECTED) {

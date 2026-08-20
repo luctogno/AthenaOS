@@ -10,7 +10,7 @@ const I18N = {
     thApp: "App", thState: "State", volume: "Volume", language: "Language", wifi: "WiFi",
     ssid: "SSID", password: "Password", passKeep: "leave empty to keep", wifiSave: "Save WiFi",
     setupLink: "Open WiFi setup", timezone: "Timezone", ntp: "NTP", reboot: "Restart",
-    poweroff: "Power off", installHint: "Sideload is not available yet. API:",
+    poweroff: "Power off", factory: "Factory reset", installHint: "Sideload is not available yet. API:",
     on: "On", off: "Off", wifiOff: "WiFi off", connected: "Connected: ",
     notConnected: "Not connected", wifiOffChip: "wifi off",
     hotspot: "Hotspot", hotspotOn: "Hotspot on: ", hotspotOff: "Hotspot off",
@@ -19,14 +19,15 @@ const I18N = {
     ntpOff: "NTP off", ntpOk: "NTP synced · ", ntpWait: "NTP waiting (needs WiFi)",
     opened: "opened", killed: "killed", volSaved: "volume saved", wifiSaved: "wifi saved",
     apSaved: "hotspot saved", tzSaved: "timezone saved", ntpSaved: "ntp saved", langSaved: "language saved",
-    restartQ: "Restart now?", powerQ: "Power off?"
+    restartQ: "Restart now?", powerQ: "Power off?",
+    factoryQ: "Erase all settings and restart? WiFi, language and app data will be lost."
   },
   it: {
     navApps: "App", navSettings: "Impostazioni", navInstall: "Installa", navSerial: "Seriale",
     thApp: "App", thState: "Stato", volume: "Volume", language: "Lingua", wifi: "WiFi",
     ssid: "SSID", password: "Password", passKeep: "vuoto per mantenere", wifiSave: "Salva WiFi",
     setupLink: "Apri setup WiFi", timezone: "Fuso orario", ntp: "NTP", reboot: "Riavvia",
-    poweroff: "Spegni", installHint: "Sideload non disponibile. API:",
+    poweroff: "Spegni", factory: "Ripristino di fabbrica", installHint: "Sideload non disponibile. API:",
     on: "On", off: "Off", wifiOff: "WiFi spento", connected: "Connesso: ",
     notConnected: "Non connesso", wifiOffChip: "wifi off",
     hotspot: "Hotspot", hotspotOn: "Hotspot attivo: ", hotspotOff: "Hotspot spento",
@@ -35,7 +36,8 @@ const I18N = {
     ntpOff: "NTP spento", ntpOk: "NTP sincronizzato · ", ntpWait: "NTP in attesa (serve WiFi)",
     opened: "aperta", killed: "chiusa", volSaved: "volume salvato", wifiSaved: "wifi salvato",
     apSaved: "hotspot salvato", tzSaved: "fuso salvato", ntpSaved: "ntp salvato", langSaved: "lingua salvata",
-    restartQ: "Riavviare ora?", powerQ: "Spegnere ora?"
+    restartQ: "Riavviare ora?", powerQ: "Spegnere ora?",
+    factoryQ: "Cancellare tutte le impostazioni e riavviare? WiFi, lingua e dati delle app andranno persi."
   }
 };
 
@@ -110,13 +112,23 @@ async function refresh() {
   const j = await (await fetch("/api/status")).json();
   const s = j.system || {};
   const st = j.settings || {};
-  const nextLang = st.lang === "it" ? "it" : "en";
+  const nextLang = st.lang || "en";
   if (nextLang !== lang) {
     lang = nextLang;
     applyStatic();
   }
-  if ($("lang") && document.activeElement !== $("lang") && $("lang").value !== lang) {
-    $("lang").value = lang;
+  const langSel = $("lang");
+  if (langSel) {
+    const langs = Array.isArray(st.langs) && st.langs.length
+      ? st.langs
+      : [{ id: "en", label: "English" }, { id: "it", label: "Italiano" }];
+    const ids = langs.map((l) => l.id).join(",");
+    if (langSel.dataset.ids !== ids) {
+      langSel.dataset.ids = ids;
+      langSel.innerHTML = langs.map((l) =>
+        "<option value=\"" + l.id + "\">" + l.label + "</option>").join("");
+    }
+    if (document.activeElement !== langSel) langSel.value = nextLang;
   }
   wifiOn = !!st.wifiOn;
   ntpOn = !!st.ntpOn;
@@ -225,6 +237,10 @@ $("reboot").onclick = async () => {
 $("poweroff").onclick = async () => {
   if (!confirm(t("powerQ"))) return;
   await post("/api/poweroff", "");
+};
+$("factory").onclick = async () => {
+  if (!confirm(t("factoryQ"))) return;
+  await post("/api/factory-reset", "");
 };
 const pkg = $("pkg");
 if (pkg) {

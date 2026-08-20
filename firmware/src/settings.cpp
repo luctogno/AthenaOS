@@ -2,9 +2,12 @@
 #include "audio.h"
 #include "boards/board.h"
 #include "clock.h"
+#include "i18n.h"
+#include "power.h"
 
 #include <Preferences.h>
 #include <WiFi.h>
+#include <nvs_flash.h>
 #include <time.h>
 #include <string.h>
 
@@ -86,17 +89,23 @@ void Settings::save() {
 void Settings::startAp() {
     if (apOn || !_wifiOn) return;
     WiFi.persistent(false);
-    WiFi.softAP(WIFI_AP_SSID);
+    WiFi.mode(WIFI_AP_STA);
+    if (!WiFi.softAP(WIFI_AP_SSID)) {
+        DEBUG_PRINTLN("[Settings] AP start failed");
+        WiFi.mode(WIFI_STA);
+        return;
+    }
     apOn = true;
     DEBUG_PRINTF("[Settings] AP '%s' %s\n",
                  WIFI_AP_SSID, WiFi.softAPIP().toString().c_str());
 }
 
 void Settings::stopAp() {
-    WiFi.softAPdisconnect(true);
-    WiFi.enableAP(false);
+    if (!apOn) return;
     apOn = false;
+    WiFi.softAPdisconnect(false);
     if (_wifiOn) WiFi.mode(WIFI_STA);
+    else WiFi.mode(WIFI_OFF);
     DEBUG_PRINTLN("[Settings] AP off");
 }
 
@@ -130,11 +139,9 @@ void Settings::begin() {
     DEBUG_PRINTF("[Settings] vol=%u wifi=%d ssid='%s' tz=%s ntp=%d lang=%s\n",
                  (unsigned)_volume, _wifiOn, _ssid, _tz, _ntpOn, _lang);
     applyAudio();
-    WiFi.persistent(false);
     apOn = false;
-    WiFi.mode(WIFI_STA);
-    WiFi.enableAP(false);
-    WiFi.softAPdisconnect(true);
+    Serial.flush();
+    delay(50);
     applyWifi();
 }
 
@@ -165,13 +172,8 @@ void Settings::applyWifi() {
         DEBUG_PRINTLN("[Settings] WiFi off");
         return;
     }
-    if (apOn) {
-        WiFi.softAP(WIFI_AP_SSID);
-    } else {
-        WiFi.mode(WIFI_STA);
-        WiFi.enableAP(false);
-        WiFi.softAPdisconnect(true);
-    }
+    WiFi.mode(apOn ? WIFI_AP_STA : WIFI_STA);
+    if (apOn) WiFi.softAP(WIFI_AP_SSID);
     if (!_ssid[0]) {
         DEBUG_PRINTLN("[Settings] WiFi on, no STA config");
         return;
@@ -260,26 +262,31 @@ bool Settings::ntpSynced() {
     return Clock::hasTime();
 }
 
-static bool langIsItValue(const char *id) {
-    return id && (id[0] == 'i' || id[0] == 'I') && (id[1] == 't' || id[1] == 'T');
-}
-
 const char *Settings::lang() {
-    return langIsIt() ? "it" : "en";
+    return _lang;
 }
 
-bool Settings::langIsIt() {
-    return langIsItValue(_lang);
+const char *Settings::langLabel() {
+    return I18n::langLabel(I18n::langIndex(_lang));
 }
 
 void Settings::setLang(const char *id) {
-    const char *v = langIsItValue(id) ? "it" : "en";
+    const char *v = I18n::langId(I18n::langIndex(id));
     if (strcmp(_lang, v) == 0) return;
     strncpy(_lang, v, sizeof(_lang) - 1);
     _lang[sizeof(_lang) - 1] = 0;
     if (_loaded) save();
 }
 
-void Settings::toggleLang() {
-    setLang(langIsIt() ? "en" : "it");
+void Settings::nextLang() {
+    int n = I18n::langCount();
+    int i = I18n::langIndex(_lang);
+    setLang(I18n::langId(n ? (i + 1) % n : 0));
+}
+
+void Settings::factoryReset() {
+    DEBUG_PRINTLN("[Settings] factory reset");
+    prefs.end();
+    nvs_flash_erase();
+    Power::restart();
 }

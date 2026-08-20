@@ -2,11 +2,27 @@
 
 bool Audio::_ready = false;
 uint8_t Audio::_volume = 70;
+unsigned long Audio::_testUntil = 0;
 
 void Audio::setVolume(uint8_t percent) {
     if (percent > 100) percent = 100;
     _volume = percent;
     DEBUG_PRINTF("[Audio] volume=%u\n", (unsigned)_volume);
+}
+
+void Audio::playTest(uint16_t ms) {
+    if (!_ready) {
+        DEBUG_PRINTLN("[Audio] playTest skipped (not ready)");
+        return;
+    }
+    if (ms < 200) ms = 200;
+    _testUntil = millis() + ms;
+    DEBUG_PRINTF("[Audio] playTest %ums vol=%u (stub, no I2S playback yet)\n",
+                 (unsigned)ms, (unsigned)_volume);
+}
+
+bool Audio::testActive() {
+    return _ready && (long)(millis() - _testUntil) < 0;
 }
 
 #if HAS_AUDIO
