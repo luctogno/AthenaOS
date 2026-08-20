@@ -39,8 +39,8 @@ void Splash::begin() {
     Display::fillScreen(COLOR_BG);
     const int16_t cx = SCREEN_WIDTH / 2;
     drawOwl(cx, 128);
-    Display::drawText(cx - 92, 248, "AthenaOS", COLOR_GOLD, 3);
-    Display::drawText(cx - 70, 288, "for Athena", COLOR_FG, 2);
+    Display::drawText(cx - 72, 248, "AthenaOS", COLOR_MAIN, FONT_TITLE);
+    Display::drawText(cx - 58, 288, "for Athena", COLOR_FG, FONT_UI);
 
     barX = (SCREEN_WIDTH - BAR_W) / 2;
     barY = 360;

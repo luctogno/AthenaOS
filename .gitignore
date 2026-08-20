@@ -6,3 +6,4 @@ esptool.exe
 *.swp
 .DS_Store
 Thumbs.db
+firmware/include/web_embed.h

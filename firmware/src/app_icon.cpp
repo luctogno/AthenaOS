@@ -25,6 +25,12 @@ void drawAppIcon(int16_t cx, int16_t cy, int16_t r, AppIcon icon,
         Display::drawLine(cx - 8, cy + 14, cx + 8, cy + 14, COLOR_ACCENT);
         Display::drawCircle(cx, cy - 4, r - 10, COLOR_MUTED);
         break;
+    case APP_ICON_GEAR:
+        Display::fillCircle(cx, cy, r - 6, COLOR_SECOND);
+        Display::fillRect(cx - 4, cy - (r - 4), 8, (r - 4) * 2, COLOR_SECOND);
+        Display::fillRect(cx - (r - 4), cy - 4, (r - 4) * 2, 8, COLOR_SECOND);
+        Display::fillCircle(cx, cy, r - 14, COLOR_BG);
+        break;
     case APP_ICON_DEFAULT:
     default:
         Display::fillCircle(cx, cy - 4, 12, COLOR_GOLD);

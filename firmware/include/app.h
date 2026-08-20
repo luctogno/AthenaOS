@@ -42,24 +42,3 @@ public:
 };
 
 #endif
-
-class App {
-public:
-    virtual ~App() {}
-    virtual AppManifest getManifest() = 0;
-    virtual void init() {}
-    virtual void start() { state = STATE_RUNNING; }
-    virtual void update() {}
-    virtual void draw() {}
-    virtual void pause() { state = STATE_PAUSED; }
-    virtual void resume() { state = STATE_RUNNING; }
-    virtual void stop() { state = STATE_IDLE; }
-    virtual void onTouchDown(uint16_t x, uint16_t y) { (void)x; (void)y; }
-    virtual void onTouchUp(uint16_t x, uint16_t y) { (void)x; (void)y; }
-    virtual void onButton(int button) { (void)button; }
-    virtual bool consumesInput() const { return false; }
-
-    AppState state = STATE_IDLE;
-};
-
-#endif

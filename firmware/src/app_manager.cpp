@@ -1,4 +1,5 @@
 #include "app_manager.h"
+#include "status_bar.h"
 #include "boards/board.h"
 #include <string.h>
 
@@ -30,6 +31,7 @@ void AppManager::switchToApp(int index) {
     }
 
     _current = index;
+    StatusBar::hide();
     if (next->state == STATE_PAUSED) next->resume();
     else next->start();
 
@@ -37,16 +39,38 @@ void AppManager::switchToApp(int index) {
     DEBUG_PRINTF("[AppMgr] switch -> %s\n", m.id);
 }
 
-void AppManager::switchToAppById(const char *id) {
-    if (!id) return;
+int AppManager::indexById(const char *id) const {
+    if (!id) return -1;
     for (int i = 0; i < _count; i++) {
         AppManifest m = _apps[i]->getManifest();
-        if (m.id && strcmp(m.id, id) == 0) {
-            switchToApp(i);
-            return;
-        }
+        if (m.id && strcmp(m.id, id) == 0) return i;
     }
-    DEBUG_PRINTF("[AppMgr] app not found: %s\n", id);
+    return -1;
+}
+
+void AppManager::switchToAppById(const char *id) {
+    int i = indexById(id);
+    if (i < 0) {
+        DEBUG_PRINTF("[AppMgr] app not found: %s\n", id);
+        return;
+    }
+    switchToApp(i);
+}
+
+bool AppManager::stopAppById(const char *id) {
+    int i = indexById(id);
+    if (i < 0) return false;
+    AppManifest m = _apps[i]->getManifest();
+    if (m.id && strcmp(m.id, "launcher") == 0) return false;
+
+    bool wasCurrent = (i == _current);
+    _apps[i]->stop();
+    DEBUG_PRINTF("[AppMgr] stop %s\n", m.id);
+    if (wasCurrent) {
+        _current = -1;
+        switchToAppById("launcher");
+    }
+    return true;
 }
 
 App *AppManager::getCurrentApp() {

@@ -2,6 +2,7 @@
 #include "display.h"
 #include "boards/board.h"
 #include "app_icon.h"
+#include "status_bar.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -76,7 +77,7 @@ private:
 
     static void tileRect(int index, int count, int16_t &x, int16_t &y, int16_t &w, int16_t &h) {
         const int16_t pad = 24;
-        const int16_t top = 88;
+        const int16_t top = StatusBar::HEIGHT + 24;
         w = SCREEN_WIDTH - pad * 2;
         if (count <= 1) {
             h = 220;
@@ -91,8 +92,7 @@ private:
 
     void render() {
         Display::fillScreen(COLOR_BG);
-        Display::fillRect(0, 0, SCREEN_WIDTH, 64, COLOR_PANEL);
-        Display::drawText(24, 22, "AthenaOS", COLOR_GOLD, 2);
+        StatusBar::draw("AthenaOS");
 
         int n = visibleCount();
         if (n == 0) {
@@ -108,8 +108,8 @@ private:
             tileRect(i, n, x, y, w, h);
             Display::fillRoundRect(x, y, w, h, 18, COLOR_PANEL);
             drawAppIcon(x + 48, y + h / 2, 28, m.icon, m.iconBitmap, m.iconW, m.iconH);
-            Display::drawText(x + 92, y + h / 2 - 22, m.name, COLOR_FG, 2);
-            Display::drawText(x + 92, y + h / 2 + 8, "Tap to open", COLOR_MUTED, 1);
+            Display::drawText(x + 92, y + h / 2 - 16, m.name, COLOR_FG, FONT_UI);
+            Display::drawText(x + 92, y + h / 2 + 10, "Tap to open", COLOR_MUTED, FONT_UI);
         }
 
         char holdHint[32];

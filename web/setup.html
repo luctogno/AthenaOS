@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AthenaOS WiFi</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+  <b>AthenaOS</b>
+  <span>WiFi setup</span>
+</header>
+<main>
+  <p>1. You are on hotspot <b id="ap">AthenaOS</b></p>
+  <p>2. Choose home WiFi, enter password, connect.</p>
+  <p>3. Restart when asked.</p>
+  <button id="scan" type="button">Scan networks</button>
+  <div id="nets"></div>
+  <label>SSID</label>
+  <input id="ssid" type="text" maxlength="32" autocomplete="off">
+  <label>Password</label>
+  <input id="pass" type="password" maxlength="64">
+  <button id="save" type="button">Connect</button>
+  <p id="status"></p>
+</main>
+<p id="toast" hidden></p>
+<script src="/setup.js"></script>
+</body>
+</html>

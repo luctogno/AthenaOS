@@ -4,13 +4,11 @@
 #include <Arduino.h>
 #include "boards/board.h"
 
-#define COLOR_BG      0x0861
-#define COLOR_FG      0xFFFF
-#define COLOR_ACCENT  0x07FD
-#define COLOR_GOLD    0xFE60
-#define COLOR_PANEL   0x19C8
-#define COLOR_MUTED   0x8410
-#define COLOR_ERROR   0xF800
+enum UiFont {
+    FONT_DEFAULT = 0,
+    FONT_UI,
+    FONT_TITLE
+};
 
 class Display {
 public:
@@ -27,6 +25,7 @@ public:
     static void blit(int16_t x, int16_t y, const uint16_t *buf, int16_t w, int16_t h);
     static void drawText(int16_t x, int16_t y, const char *text, uint16_t color);
     static void drawText(int16_t x, int16_t y, const char *text, uint16_t color, uint8_t size);
+    static void drawText(int16_t x, int16_t y, const char *text, uint16_t color, UiFont font);
 };
 
 #endif

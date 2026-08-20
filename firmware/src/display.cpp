@@ -2,6 +2,7 @@
 
 #if HAS_DISPLAY
 #include <Arduino_GFX_Library.h>
+#include "ui_font.h"
 
 static Arduino_DataBus *bus = new Arduino_ESP32QSPI(
     TFT_PIN_CS, TFT_PIN_SCLK, TFT_PIN_D0, TFT_PIN_D1, TFT_PIN_D2, TFT_PIN_D3);
@@ -19,6 +20,7 @@ bool Display::begin() {
     }
     gfx->fillScreen(RGB565_BLACK);
     gfx->setBrightness(180);
+    gfx->setTextWrap(false);
     DEBUG_PRINTF("[Display] %dx%d native UI\n", TFT_WIDTH, TFT_HEIGHT);
     return true;
 }
@@ -68,10 +70,34 @@ void Display::drawText(int16_t x, int16_t y, const char *text, uint16_t color) {
 }
 
 void Display::drawText(int16_t x, int16_t y, const char *text, uint16_t color, uint8_t size) {
+    gfx->setFont(nullptr);
     gfx->setTextColor(color);
-    gfx->setCursor(x, y);
     gfx->setTextSize(size < 1 ? 1 : size);
+    gfx->setCursor(x, y);
     gfx->print(text);
+}
+
+void Display::drawText(int16_t x, int16_t y, const char *text, uint16_t color, UiFont font) {
+    if (font == FONT_DEFAULT) {
+        drawText(x, y, text, color, 2);
+        return;
+    }
+#if UI_FONT_FAMILY == UI_FONT_GLCD
+    drawText(x, y, text, color, font == FONT_TITLE ? 3 : 2);
+#else
+    gfx->setTextColor(color);
+    gfx->setTextSize(1);
+    if (font == FONT_TITLE) {
+        gfx->setFont(&UI_FONT_TITLE_GFX);
+        gfx->setCursor(x, y + UI_FONT_TITLE_BASELINE);
+    } else {
+        gfx->setFont(&UI_FONT_UI_GFX);
+        gfx->setCursor(x, y + UI_FONT_UI_BASELINE);
+    }
+    gfx->print(text);
+    gfx->setFont(nullptr);
+    gfx->setTextSize(2);
+#endif
 }
 
 #else
@@ -93,5 +119,6 @@ void Display::drawLine(int16_t, int16_t, int16_t, int16_t, uint16_t) {}
 void Display::blit(int16_t, int16_t, const uint16_t *, int16_t, int16_t) {}
 void Display::drawText(int16_t, int16_t, const char *, uint16_t) {}
 void Display::drawText(int16_t, int16_t, const char *, uint16_t, uint8_t) {}
+void Display::drawText(int16_t, int16_t, const char *, uint16_t, UiFont) {}
 
 #endif

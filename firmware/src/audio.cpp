@@ -1,6 +1,13 @@
 #include "audio.h"
 
 bool Audio::_ready = false;
+uint8_t Audio::_volume = 70;
+
+void Audio::setVolume(uint8_t percent) {
+    if (percent > 100) percent = 100;
+    _volume = percent;
+    DEBUG_PRINTF("[Audio] volume=%u\n", (unsigned)_volume);
+}
 
 #if HAS_AUDIO
 

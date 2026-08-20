@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AthenaOS</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+  <b>AthenaOS</b>
+  <span id="meta"></span>
+</header>
+<nav>
+  <a href="#apps">Apps</a>
+  <a href="#settings">Settings</a>
+  <a href="#install">Install</a>
+  <a href="#serial">Serial</a>
+</nav>
+<main>
+  <section id="apps">
+    <div id="sys"></div>
+    <table>
+      <thead><tr><th>App</th><th>State</th><th></th></tr></thead>
+      <tbody id="appRows"></tbody>
+    </table>
+  </section>
+  <section id="settings" hidden>
+    <p id="wifiState"></p>
+    <p id="wifiGuide" hidden></p>
+    <label>Volume <span id="volVal">70</span>%</label>
+    <input id="vol" type="range" min="0" max="100" value="70">
+    <label>WiFi</label>
+    <button id="wifiBtn" type="button">On</button>
+    <label>SSID</label>
+    <input id="ssid" type="text" maxlength="32" autocomplete="off">
+    <label>Password</label>
+    <input id="pass" type="password" maxlength="64" placeholder="leave empty to keep">
+    <button id="wifiSave" type="button">Save WiFi</button>
+    <p><a href="/setup">Open WiFi setup</a></p>
+    <label>Timezone</label>
+    <select id="tz">
+      <option value="Rome" selected>Rome</option>
+      <option value="UTC">UTC</option>
+      <option value="London">London</option>
+      <option value="NewYork">New York</option>
+      <option value="Tokyo">Tokyo</option>
+    </select>
+    <p id="ntpState"></p>
+    <label>NTP</label>
+    <button id="ntpBtn" type="button">On</button>
+    <button id="reboot" type="button">Restart</button>
+    <button id="poweroff" class="kill" type="button">Power off</button>
+  </section>
+  <section id="install" hidden>
+    <p>Sideload is not available yet. API: <code>POST /api/apps/install</code></p>
+    <input id="pkg" type="file">
+  </section>
+  <section id="serial" hidden>
+    <pre id="serialOut"></pre>
+  </section>
+</main>
+<p id="toast" hidden></p>
+<script src="/app.js"></script>
+</body>
+</html>

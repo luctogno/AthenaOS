@@ -106,4 +106,16 @@
 #define SD_PIN_D2               PIN_NONE
 #define SD_PIN_D3               PIN_NONE
 
+// --- Theme ---
+#define COLOR_MAIN              0xFE60  // primary (titles, highlights)
+#define COLOR_SECOND            0x07FD  // secondary (accents, icons)
+#define COLOR_BG                0x0861
+#define COLOR_FG                0xFFFF
+#define COLOR_PANEL             0x19C8
+#define COLOR_MUTED             0x8410
+#define COLOR_ERROR             0xF800
+#define UI_FONT_FAMILY          UI_FONT_SANS  // GLCD | SANS | SERIF | MONO
+#define WEB_CONSOLE_PORT        8080
+#define WIFI_AP_SSID            "AthenaOS"
+
 #endif

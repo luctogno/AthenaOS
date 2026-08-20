@@ -10,10 +10,13 @@ public:
     void registerApp(App *app);
     void switchToApp(int index);
     void switchToAppById(const char *id);
+    bool stopAppById(const char *id);
     App *getCurrentApp();
     int getAppCount() const { return _count; }
     App *getApp(int index);
     int getCurrentIndex() const { return _current; }
+
+    int indexById(const char *id) const;
 
 private:
     App *_apps[APP_MANAGER_MAX] = {};

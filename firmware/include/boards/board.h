@@ -1,6 +1,11 @@
 #ifndef ATHENAOS_BOARD_H
 #define ATHENAOS_BOARD_H
 
+#define UI_FONT_GLCD            0
+#define UI_FONT_SANS            1
+#define UI_FONT_SERIF           2
+#define UI_FONT_MONO            3
+
 #if defined(BOARD_WAVESHARE_AMOLED_18_V2)
 #ifndef WAVESHARE_AMOLED_V2
 #define WAVESHARE_AMOLED_V2 1
@@ -19,10 +24,49 @@
 #define HOME_HOLD_MS            5000
 #endif
 
+#ifndef COLOR_MAIN
+#define COLOR_MAIN              0xFE60
+#endif
+#ifndef COLOR_SECOND
+#define COLOR_SECOND            0x07FD
+#endif
+#ifndef COLOR_BG
+#define COLOR_BG                0x0861
+#endif
+#ifndef COLOR_FG
+#define COLOR_FG                0xFFFF
+#endif
+#ifndef COLOR_PANEL
+#define COLOR_PANEL             0x19C8
+#endif
+#ifndef COLOR_MUTED
+#define COLOR_MUTED             0x8410
+#endif
+#ifndef COLOR_ERROR
+#define COLOR_ERROR             0xF800
+#endif
+#ifndef COLOR_GOLD
+#define COLOR_GOLD              COLOR_MAIN
+#endif
+#ifndef COLOR_ACCENT
+#define COLOR_ACCENT            COLOR_SECOND
+#endif
+
+#ifndef UI_FONT_FAMILY
+#define UI_FONT_FAMILY          UI_FONT_SANS
+#endif
+#ifndef WEB_CONSOLE_PORT
+#define WEB_CONSOLE_PORT        8080
+#endif
+#ifndef WIFI_AP_SSID
+#define WIFI_AP_SSID            "AthenaOS"
+#endif
+
 #ifndef DISABLE_DEBUG
-#define DEBUG_PRINT(x)           Serial.print(x)
-#define DEBUG_PRINTLN(x)         Serial.println(x)
-#define DEBUG_PRINTF(fmt, ...)   Serial.printf(fmt, ##__VA_ARGS__)
+#include "log_buffer.h"
+#define DEBUG_PRINT(x)           LogBuffer::out().print(x)
+#define DEBUG_PRINTLN(x)         LogBuffer::out().println(x)
+#define DEBUG_PRINTF(fmt, ...)   LogBuffer::out().printf(fmt, ##__VA_ARGS__)
 #else
 #define DEBUG_PRINT(x)
 #define DEBUG_PRINTLN(x)

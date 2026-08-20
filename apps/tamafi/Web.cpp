@@ -2,6 +2,7 @@
 #include "config.h"
 #include "ui.h"
 #include "StepDetector.h"
+#include "settings.h"
 
 #include <WiFi.h>
 #include <WebServer.h>
@@ -374,12 +375,22 @@ static void redirectHome() {
 }
 
 void wifiBegin() {
+    if (!Settings::wifiEnabled()) {
+        DEBUG_PRINTLN("[WiFi] disabled in Settings");
+        return;
+    }
+    const char *ssid = Settings::hasWifiConfig() ? Settings::wifiSsid() : WIFI_SSID;
+    const char *pass = Settings::hasWifiConfig() ? Settings::wifiPassword() : WIFI_PASSWORD;
+    if (WiFi.status() == WL_CONNECTED && WiFi.SSID() == ssid) {
+        DEBUG_PRINTLN("[WiFi] already connected");
+        return;
+    }
     DEBUG_PRINTF("[WiFi] begin SSID='%s' (password %s)\n",
-                 WIFI_SSID, (WIFI_PASSWORD[0] ? "set" : "EMPTY"));
+                 ssid, (pass && pass[0] ? "set" : "EMPTY"));
     WiFi.persistent(false);
     WiFi.mode(WIFI_STA);
     WiFi.onEvent(wifiEvent);
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    WiFi.begin(ssid, pass);
 }
 
 void webBegin() {

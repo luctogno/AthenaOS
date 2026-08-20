@@ -13,11 +13,17 @@
 #include "ble_controller.h"
 #include "splash.h"
 #include "app_manager.h"
+#include "settings.h"
+#include "status_bar.h"
+#include "web_console.h"
+#include "log_buffer.h"
+#include "clock.h"
 #include <string.h>
 
 extern void registerLauncherApp();
 extern void registerTamafiApp();
 extern void registerXiaozhiApp();
+extern void registerSettingsApp();
 
 static bool splashDone = false;
 static unsigned long homeHoldStart = 0;
@@ -72,22 +78,30 @@ static void probeDevices() {
 void setup() {
     Serial.begin(SERIAL_BAUD);
     delay(200);
+    LogBuffer::begin();
     DEBUG_PRINTLN("\n=== AthenaOS Booting ===");
 
     Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
     Wire.setClock(100000);
 
     probeDevices();
+    Settings::begin();
+    Clock::begin();
 
     registerLauncherApp();
     registerTamafiApp();
     registerXiaozhiApp();
+    registerSettingsApp();
 
     Splash::begin();
     DEBUG_PRINTLN("AthenaOS ready");
 }
 
 void loop() {
+    Settings::poll();
+    Clock::poll();
+    WebConsole::poll();
+
     if (!splashDone) {
         if (Splash::update()) {
             splashDone = true;
@@ -111,4 +125,5 @@ void loop() {
 
     app->update();
     app->draw();
+    StatusBar::tick();
 }

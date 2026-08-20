@@ -1,6 +1,7 @@
 #include "app_manager.h"
 #include "display.h"
 #include "boards/board.h"
+#include "status_bar.h"
 #include <stdio.h>
 
 // AthenaOS shell for upstream 78/xiaozhi-esp32.
@@ -38,8 +39,7 @@ private:
 
     void render() {
         Display::fillScreen(COLOR_BG);
-        Display::fillRect(0, 0, SCREEN_WIDTH, 64, COLOR_PANEL);
-        Display::drawText(24, 22, "Xiaozhi", COLOR_GOLD, 2);
+        StatusBar::draw("Xiaozhi");
 
         Display::fillRoundRect(24, 88, SCREEN_WIDTH - 48, 120, 16, COLOR_PANEL);
         Display::drawText(40, 108, "AI voice / MCP", COLOR_FG, 2);
