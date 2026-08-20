@@ -1,0 +1,9 @@
+{
+  "id": "xiaozhi",
+  "name": "Xiaozhi",
+  "version": "1.0.0",
+  "author": "78/xiaozhi-esp32",
+  "description": "MCP voice chatbot (ESP-IDF submodule)",
+  "type": "native",
+  "upstream": "third_party/xiaozhi-esp32"
+}

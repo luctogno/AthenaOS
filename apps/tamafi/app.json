@@ -1,0 +1,8 @@
+{
+  "id": "tamafi",
+  "name": "TamaFi",
+  "version": "2.0.0",
+  "author": "AthenaOS",
+  "description": "Virtual pet — WiFi-fed, IMU pedometer",
+  "type": "native"
+}

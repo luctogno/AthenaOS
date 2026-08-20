@@ -1,0 +1,39 @@
+ATHENAOS — PROJECT SUMMARY
+Dedicated to Athena Togno (December 2026)
+
+STATUS
+------
+Skeleton only. Splash + HAL probe on Waveshare ESP32-S3-Touch-AMOLED-1.8.
+App manager / launcher / WiFi / web / third-party apps: not started.
+
+HARDWARE
+--------
+MCU:     ESP32-S3, 16 MB flash, OPI PSRAM
+Display: 368x448 AMOLED QSPI (SH8601 or CO5300)
+Touch:   FT3168 (0x38) or CST820 (0x15)
+IMU:     QMI8658 (pedometer software)
+Audio:   ES8311 pins defined, driver stub
+BLE:     on-chip, BleController stub
+NFC:     HAS_NFC=0 on this board (slot ready)
+
+BUILD
+-----
+WSL: bash ./build_flash.sh
+     bash ./build_flash.sh --env waveshare_amoled_18_v2
+
+Bins: .pio-out/<env>/
+
+LAYOUT
+------
+firmware/src, firmware/include/boards
+scripts/build_flash.sh
+docs/  BOARDS, BUILD, ARCHITECTURE, SETUP, QUICKSTART
+
+KEY HAL
+-------
+Display::begin / fillScreen / drawText
+Touch::begin / read
+Input::poll  (btn1/btn2/btn3, tap)
+Imu::readAccelG
+Pedometer::poll / total
+Audio / Mic / Nfc / BleController  (stub begin)
