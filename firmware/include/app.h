@@ -2,7 +2,6 @@
 #define ATHENAOS_APP_H
 
 #include <Arduino.h>
-#include "app_icon.h"
 
 enum AppState {
     STATE_IDLE = 0,
@@ -10,13 +9,16 @@ enum AppState {
     STATE_PAUSED
 };
 
+// Launcher icon: put drawIcon in apps/<id>/icon.cpp, or a RGB565 bitmap.
+typedef void (*AppIconDraw)(int16_t cx, int16_t cy, int16_t r);
+
 struct AppManifest {
     const char *id;
     const char *name;
     const char *version;
     const char *author;
     bool enabled;
-    AppIcon icon;
+    AppIconDraw drawIcon;
     const uint16_t *iconBitmap;
     int16_t iconW;
     int16_t iconH;

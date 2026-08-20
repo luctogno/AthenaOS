@@ -1,11 +1,12 @@
 #include "app_manager.h"
 #include "tamafi_game.h"
 #include "config.h"
+#include "icon.h"
 
 class TamafiApp : public App {
 public:
     AppManifest getManifest() override {
-        return {"tamafi", "TamaFi", "2.0.0", "AthenaOS", true, APP_ICON_PET, nullptr, 0, 0};
+        return {"tamafi", "TamaFi", "2.0.0", "AthenaOS", true, drawTamafiIcon, nullptr, 0, 0};
     }
 
     bool consumesInput() const override { return true; }

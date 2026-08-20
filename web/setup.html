@@ -2,29 +2,194 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>AthenaOS WiFi</title>
-<link rel="stylesheet" href="/style.css">
+<style>
+:root {
+  --gold: #FFD700;
+  --pink: #FFB6D9;
+  --hot: #FF69B4;
+  --cyan: #00FFFF;
+  --bg: #0a0a1a;
+  --bg2: #1a0a2e;
+  --fg: #fff;
+  --muted: #8a7a9a;
+  --line: #3a2458;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(ellipse at top, var(--bg2), var(--bg) 70%);
+  color: var(--fg);
+  font: 16px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+  padding: 20px 18px 32px;
+}
+header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+header .mark {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 0 10px var(--hot);
+}
+header b { color: var(--gold); font-size: 20px; text-shadow: 0 0 10px var(--gold); }
+header span, p, label { color: var(--muted); }
+h1 { font-size: 22px; margin: 0 0 8px; font-weight: 650; }
+.step { margin: 0 0 16px; }
+#nets { display: grid; gap: 8px; margin: 12px 0 18px; }
+button, input {
+  font: inherit;
+  width: 100%;
+  min-height: 48px;
+  border-radius: 12px;
+}
+button {
+  border: 0;
+  background: var(--hot);
+  color: var(--bg);
+  font-weight: 650;
+  box-shadow: 0 0 10px rgba(255,105,180,.45);
+}
+button.ghost { background: var(--bg2); color: var(--fg); box-shadow: none; border: 1px solid var(--line); text-align: left; padding: 0 14px; }
+button.ghost.on { border-color: var(--hot); box-shadow: 0 0 8px rgba(255,105,180,.35); }
+label { display: block; margin: 10px 0 4px; }
+input {
+  background: var(--bg2);
+  color: var(--fg);
+  border: 1px solid var(--line);
+  padding: 0 14px;
+}
+#save { margin-top: 16px; }
+#status { min-height: 1.4em; color: var(--cyan); }
+#toast {
+  position: fixed; left: 16px; right: 16px; bottom: 16px;
+  background: var(--bg2); border: 1px solid var(--gold);
+  padding: 12px; border-radius: 12px; text-align: center;
+}
+</style>
 </head>
 <body>
 <header>
-  <b>AthenaOS</b>
-  <span>WiFi setup</span>
+  <img class="mark" src="/logo.jpg" alt="" width="48" height="48">
+  <div>
+    <b>AthenaOS</b>
+    <span id="sub">WiFi setup</span>
+  </div>
 </header>
-<main>
-  <p>1. You are on hotspot <b id="ap">AthenaOS</b></p>
-  <p>2. Choose home WiFi, enter password, connect.</p>
-  <p>3. Restart when asked.</p>
-  <button id="scan" type="button">Scan networks</button>
-  <div id="nets"></div>
-  <label>SSID</label>
-  <input id="ssid" type="text" maxlength="32" autocomplete="off">
-  <label>Password</label>
-  <input id="pass" type="password" maxlength="64">
-  <button id="save" type="button">Connect</button>
-  <p id="status"></p>
-</main>
+<h1 id="title">Connect home WiFi</h1>
+<p class="step"><span id="stepA">You are on hotspot</span> <b id="ap" style="color:#FFD700">AthenaOS</b>. <span id="stepB">Pick a network, enter the password, connect.</span></p>
+<button id="scan" class="ghost" type="button">Scan networks</button>
+<div id="nets"></div>
+<label id="labSsid" for="ssid">Network</label>
+<input id="ssid" type="text" maxlength="32" autocomplete="off" autocapitalize="none">
+<label id="labPass" for="pass">Password</label>
+<input id="pass" type="password" maxlength="64" autocomplete="current-password">
+<button id="save" type="button">Connect</button>
+<p id="status"></p>
 <p id="toast" hidden></p>
-<script src="/setup.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+let lang = "en";
+const I18N = {
+  en: {
+    sub: "WiFi setup", title: "Connect home WiFi",
+    stepA: "You are on hotspot", stepB: "Pick a network, enter the password, connect.",
+    scan: "Scan networks", ssid: "Network", pass: "Password", save: "Connect",
+    open: " (open)", scanning: "Scanning...", connecting: "Connecting...",
+    connectedTo: "Connected to ", connected: "Connected.",
+    restartQ: "WiFi connected. Restart now?",
+    fail: "Not connected yet. Check password.", still: "still connecting",
+    needSsid: "SSID required"
+  },
+  it: {
+    sub: "Setup WiFi", title: "Collega il WiFi di casa",
+    stepA: "Sei sull'hotspot", stepB: "Scegli una rete, inserisci la password, connetti.",
+    scan: "Cerca reti", ssid: "Rete", pass: "Password", save: "Connetti",
+    open: " (aperta)", scanning: "Scansione...", connecting: "Connessione...",
+    connectedTo: "Connesso a ", connected: "Connesso.",
+    restartQ: "WiFi connesso. Riavviare ora?",
+    fail: "Non ancora connesso. Controlla la password.", still: "ancora in connessione",
+    needSsid: "SSID obbligatorio"
+  }
+};
+function t(key) {
+  return (I18N[lang] && I18N[lang][key]) || I18N.en[key] || key;
+}
+function applyLang() {
+  document.documentElement.lang = lang;
+  $("sub").textContent = t("sub");
+  $("title").textContent = t("title");
+  $("stepA").textContent = t("stepA");
+  $("stepB").textContent = t("stepB");
+  $("scan").textContent = t("scan");
+  $("labSsid").textContent = t("ssid");
+  $("labPass").textContent = t("pass");
+  $("save").textContent = t("save");
+}
+function toast(msg) {
+  const el = $("toast");
+  el.textContent = msg;
+  el.hidden = false;
+  setTimeout(() => { el.hidden = true; }, 2200);
+}
+async function loadStatus() {
+  const j = await (await fetch("/api/status")).json();
+  const next = (j.settings && j.settings.lang === "it") ? "it" : "en";
+  if (next !== lang) { lang = next; applyLang(); }
+  const ap = j.system && j.system.ap;
+  if (ap && ap.ssid) $("ap").textContent = ap.ssid;
+  if (j.system && j.system.wifi && j.system.wifi.connected) {
+    $("status").textContent = t("connectedTo") + (j.system.wifi.ssid || "WiFi");
+  }
+}
+async function scan() {
+  $("status").textContent = t("scanning");
+  let j = await (await fetch("/api/wifi/scan", { method: "POST" })).json();
+  for (let i = 0; i < 12 && j.scanning; i++) {
+    await new Promise((r) => setTimeout(r, 500));
+    j = await (await fetch("/api/wifi/scan")).json();
+  }
+  $("status").textContent = "";
+  $("nets").innerHTML = (j.networks || []).map((n) =>
+    "<button type='button' class='ghost' data-ssid='" + n.ssid + "'>" + n.ssid +
+    (n.open ? t("open") : "") + "</button>"
+  ).join("");
+}
+$("nets").onclick = (e) => {
+  const btn = e.target.closest("[data-ssid]");
+  if (!btn) return;
+  $("ssid").value = btn.dataset.ssid;
+  $("nets").querySelectorAll("button").forEach((b) => b.classList.toggle("on", b === btn));
+  $("pass").focus();
+};
+$("scan").onclick = scan;
+$("save").onclick = async () => {
+  const ssid = $("ssid").value.trim();
+  if (!ssid) { toast(t("needSsid")); return; }
+  $("status").textContent = t("connecting");
+  await fetch("/api/settings", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: "ssid=" + encodeURIComponent(ssid) + "&password=" + encodeURIComponent($("pass").value)
+  });
+  for (let i = 0; i < 20; i++) {
+    await new Promise((r) => setTimeout(r, 500));
+    const j = await (await fetch("/api/status")).json();
+    if (j.system && j.system.wifi && j.system.wifi.connected) {
+      $("status").textContent = t("connected");
+      if (confirm(t("restartQ"))) {
+        await fetch("/api/restart", { method: "POST" });
+      }
+      return;
+    }
+  }
+  $("status").textContent = t("fail");
+  toast(t("still"));
+};
+loadStatus();
+scan();
+</script>
 </body>
 </html>

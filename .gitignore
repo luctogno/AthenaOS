@@ -7,3 +7,4 @@ esptool.exe
 .DS_Store
 Thumbs.db
 firmware/include/web_embed.h
+firmware/include/splash_embed.h

@@ -1,5 +1,6 @@
 #include "web_console.h"
 #include "web_embed.h"
+#include "splash_embed.h"
 #include "boards/board.h"
 #include "app_manager.h"
 #include "settings.h"
@@ -100,7 +101,9 @@ static String statusJson() {
     j += Settings::ntpEnabled() ? "true" : "false";
     j += ",\"ntpSynced\":";
     j += Settings::ntpSynced() ? "true" : "false";
-    j += "},\"apps\":[";
+    j += ",\"lang\":\"";
+    jsonEscapeAppend(j, Settings::lang());
+    j += "\"},\"apps\":[";
     for (int i = 0; i < g_appManager.getAppCount(); i++) {
         App *app = g_appManager.getApp(i);
         if (!app) continue;
@@ -154,8 +157,9 @@ static void handleJs() {
     sendAsset("application/javascript", WEB_APP_JS);
 }
 
-static void handleSetupJs() {
-    sendAsset("application/javascript", WEB_SETUP_JS);
+static void handleLogo() {
+    console.sendHeader("Cache-Control", "public, max-age=86400");
+    console.send_P(200, "image/jpeg", (PGM_P)SPLASH_JPG, SPLASH_JPG_LEN);
 }
 
 static void handleStatus() {
@@ -235,6 +239,9 @@ static void handleSettings() {
     if (console.hasArg("wifiOn")) {
         Settings::setWifiEnabled(console.arg("wifiOn") == "1" || console.arg("wifiOn") == "true");
     }
+    if (console.hasArg("apOn")) {
+        Settings::setApEnabled(console.arg("apOn") == "1" || console.arg("apOn") == "true");
+    }
     if (console.hasArg("ssid")) {
         String ssid = console.arg("ssid");
         const char *pass = Settings::wifiPassword();
@@ -250,6 +257,9 @@ static void handleSettings() {
     }
     if (console.hasArg("ntpOn")) {
         Settings::setNtpEnabled(console.arg("ntpOn") == "1" || console.arg("ntpOn") == "true");
+    }
+    if (console.hasArg("lang")) {
+        Settings::setLang(console.arg("lang").c_str());
     }
     sendJson(200, statusJson());
 }
@@ -275,6 +285,14 @@ static void handleLog() {
     console.send(200, "text/plain", body);
 }
 
+static void stopPortal() {
+    if (!portalOn) return;
+    dns.stop();
+    portal80.stop();
+    portalOn = false;
+    DEBUG_PRINTLN("[WebConsole] captive off");
+}
+
 static void beginPortal() {
     if (portalOn || !Settings::apActive()) return;
     dns.start(53, "*", WiFi.softAPIP());
@@ -294,7 +312,7 @@ static void beginServer() {
     console.on("/setup.html", HTTP_GET, handleSetup);
     console.on("/style.css", HTTP_GET, handleCss);
     console.on("/app.js", HTTP_GET, handleJs);
-    console.on("/setup.js", HTTP_GET, handleSetupJs);
+    console.on("/logo.jpg", HTTP_GET, handleLogo);
     console.on("/api/status", HTTP_GET, handleStatus);
     console.on("/api/wifi/scan", HTTP_GET, handleScanGet);
     console.on("/api/wifi/scan", HTTP_POST, handleScanPost);
@@ -324,7 +342,8 @@ void WebConsole::poll() {
         if (!Settings::apActive() && WiFi.status() != WL_CONNECTED) return;
         beginServer();
     }
-    beginPortal();
+    if (Settings::apActive()) beginPortal();
+    else stopPortal();
     if (portalOn) {
         dns.processNextRequest();
         portal80.handleClient();

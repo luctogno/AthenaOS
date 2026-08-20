@@ -1,15 +1,17 @@
 #include "app_manager.h"
 #include "display.h"
 #include "boards/board.h"
-#include "app_icon.h"
+#include "icon.h"
 #include "status_bar.h"
+#include "settings.h"
+#include "i18n.h"
 #include <string.h>
 #include <stdio.h>
 
 class LauncherApp : public App {
 public:
     AppManifest getManifest() override {
-        return {"launcher", "Launcher", "1.0.0", "AthenaOS", true, APP_ICON_DEFAULT, nullptr, 0, 0};
+        return {"launcher", "Launcher", "1.0.0", "AthenaOS", true, drawLauncherIcon, nullptr, 0, 0};
     }
 
     void start() override {
@@ -45,10 +47,16 @@ public:
         }
     }
 
-    void update() override {}
+    void update() override {
+        if (strcmp(_langShown, Settings::lang()) == 0) return;
+        strncpy(_langShown, Settings::lang(), sizeof(_langShown) - 1);
+        _langShown[sizeof(_langShown) - 1] = 0;
+        _dirty = true;
+    }
 
 private:
     bool _dirty = true;
+    char _langShown[4] = "";
 
     static bool isLauncher(App *app) {
         if (!app) return true;
@@ -96,7 +104,7 @@ private:
 
         int n = visibleCount();
         if (n == 0) {
-            Display::drawText(32, 180, "No apps", COLOR_MUTED, 2);
+            Display::drawText(32, 180, I18n::t(I18N_NO_APPS), COLOR_MUTED, 2);
             return;
         }
 
@@ -107,13 +115,22 @@ private:
             int16_t x, y, w, h;
             tileRect(i, n, x, y, w, h);
             Display::fillRoundRect(x, y, w, h, 18, COLOR_PANEL);
-            drawAppIcon(x + 48, y + h / 2, 28, m.icon, m.iconBitmap, m.iconW, m.iconH);
+            int16_t icx = x + 48;
+            int16_t icy = y + h / 2;
+            if (m.iconBitmap && m.iconW > 0 && m.iconH > 0) {
+                Display::blit(icx - m.iconW / 2, icy - m.iconH / 2,
+                              m.iconBitmap, m.iconW, m.iconH);
+            } else if (m.drawIcon) {
+                m.drawIcon(icx, icy, 28);
+            } else {
+                Display::fillCircle(icx, icy, 28, COLOR_BG);
+            }
             Display::drawText(x + 92, y + h / 2 - 16, m.name, COLOR_FG, FONT_UI);
-            Display::drawText(x + 92, y + h / 2 + 10, "Tap to open", COLOR_MUTED, FONT_UI);
+            Display::drawText(x + 92, y + h / 2 + 10, I18n::t(I18N_TAP_OPEN), COLOR_MUTED, FONT_UI);
         }
 
         char holdHint[32];
-        snprintf(holdHint, sizeof(holdHint), "Hold BOOT %lus to go home",
+        snprintf(holdHint, sizeof(holdHint), I18n::t(I18N_HOLD_HOME),
                  (unsigned long)(HOME_HOLD_MS / 1000));
         Display::drawText(24, SCREEN_HEIGHT - 36, holdHint, COLOR_MUTED, 1);
     }

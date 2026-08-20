@@ -106,13 +106,20 @@
 #define SD_PIN_D2               PIN_NONE
 #define SD_PIN_D3               PIN_NONE
 
-// --- Theme ---
-#define COLOR_MAIN              0xFE60  // primary (titles, highlights)
-#define COLOR_SECOND            0x07FD  // secondary (accents, icons)
-#define COLOR_BG                0x0861
+// --- Theme (RGB565) ---
+// #FFD700 gold, #FFB6D9 soft pink, #FF69B4 hot pink, #00FFFF cyan, #FFFFFF
+// bg #0a0a1a, panel dark purple
+#define COLOR_GOLD              0xFEA0
+#define COLOR_SOFT              0xFDBB
+#define COLOR_PINK              0xFB56
+#define COLOR_CYAN              0x07FF
+#define COLOR_MAIN              COLOR_GOLD
+#define COLOR_SECOND            COLOR_CYAN
+#define COLOR_ACCENT            COLOR_PINK
+#define COLOR_BG                0x0843
 #define COLOR_FG                0xFFFF
-#define COLOR_PANEL             0x19C8
-#define COLOR_MUTED             0x8410
+#define COLOR_PANEL             0x2889
+#define COLOR_MUTED             0x8BD3
 #define COLOR_ERROR             0xF800
 #define UI_FONT_FAMILY          UI_FONT_SANS  // GLCD | SANS | SERIF | MONO
 #define WEB_CONSOLE_PORT        8080

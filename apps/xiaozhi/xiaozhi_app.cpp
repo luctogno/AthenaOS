@@ -2,6 +2,7 @@
 #include "display.h"
 #include "boards/board.h"
 #include "status_bar.h"
+#include "icon.h"
 #include <stdio.h>
 
 // AthenaOS shell for upstream 78/xiaozhi-esp32.
@@ -11,7 +12,7 @@
 class XiaozhiApp : public App {
 public:
     AppManifest getManifest() override {
-        return {"xiaozhi", "Xiaozhi", "1.0.0", "78/xiaozhi-esp32", true, APP_ICON_MIC, nullptr, 0, 0};
+        return {"xiaozhi", "Xiaozhi", "1.0.0", "78/xiaozhi-esp32", true, drawXiaozhiIcon, nullptr, 0, 0};
     }
 
     void start() override {

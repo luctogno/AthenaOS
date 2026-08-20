@@ -42,7 +42,24 @@ void Display::drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t colo
 }
 
 void Display::fillRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r, uint16_t color) {
-    gfx->fillRoundRect(x, y, w, h, r, color);
+    // Do not use gfx->fillRoundRect: Adafruit fillCircleHelper leaves a 1px
+    // noisy scanline on SH8601/CO5300 QSPI, usually along the bottom of the fill.
+    if (w <= 0 || h <= 0) return;
+    if (r < 0) r = 0;
+    int16_t maxR = ((w < h) ? w : h) / 2;
+    if (r > maxR) r = maxR;
+    if (r < 1) {
+        gfx->fillRect(x, y, w, h, color);
+        return;
+    }
+
+    gfx->fillRect(x, y + r, w, h - 2 * r, color);
+    gfx->fillRect(x + r, y, w - 2 * r, r + 1, color);
+    gfx->fillRect(x + r, y + h - r - 1, w - 2 * r, r + 1, color);
+    gfx->fillCircle(x + r, y + r, r, color);
+    gfx->fillCircle(x + w - r - 1, y + r, r, color);
+    gfx->fillCircle(x + r, y + h - r - 1, r, color);
+    gfx->fillCircle(x + w - r - 1, y + h - r - 1, r, color);
 }
 
 void Display::fillCircle(int16_t x, int16_t y, int16_t r, uint16_t color) {

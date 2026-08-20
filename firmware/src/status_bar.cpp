@@ -11,6 +11,8 @@
 
 static char lastTime[8] = "";
 static bool barVisible = false;
+static int lastWifiBars = -2;
+static int lastBatt = -200;
 
 static int batteryPercent() {
 #if HAS_PMU
@@ -70,6 +72,18 @@ static void drawTime(const char *timeBuf) {
     Display::drawText(148, 16, timeBuf, COLOR_FG, FONT_UI);
 }
 
+static void redrawWifi() {
+    lastWifiBars = wifiBars();
+    Display::fillRect(SCREEN_WIDTH - 72, 12, 34, 28, COLOR_PANEL);
+    drawWifiIcon(SCREEN_WIDTH - 70, 16);
+}
+
+static void redrawBattery() {
+    lastBatt = batteryPercent();
+    Display::fillRect(SCREEN_WIDTH - 38, 16, 38, 22, COLOR_PANEL);
+    drawBatteryIcon(SCREEN_WIDTH - 36, 20);
+}
+
 void StatusBar::draw(const char *title) {
     barVisible = true;
 
@@ -79,21 +93,30 @@ void StatusBar::draw(const char *title) {
     Clock::format(lastTime, sizeof(lastTime));
     Display::drawText(148, 16, lastTime, COLOR_FG, FONT_UI);
 
+    lastWifiBars = wifiBars();
+    lastBatt = batteryPercent();
     drawWifiIcon(SCREEN_WIDTH - 70, 16);
     drawBatteryIcon(SCREEN_WIDTH - 36, 20);
 }
 
 void StatusBar::tick() {
     if (!barVisible) return;
+
     char timeBuf[8];
     Clock::format(timeBuf, sizeof(timeBuf));
-    if (strcmp(timeBuf, lastTime) == 0) return;
-    strncpy(lastTime, timeBuf, sizeof(lastTime) - 1);
-    lastTime[sizeof(lastTime) - 1] = 0;
-    drawTime(lastTime);
+    if (strcmp(timeBuf, lastTime) != 0) {
+        strncpy(lastTime, timeBuf, sizeof(lastTime) - 1);
+        lastTime[sizeof(lastTime) - 1] = 0;
+        drawTime(lastTime);
+    }
+
+    if (wifiBars() != lastWifiBars) redrawWifi();
+    if (batteryPercent() != lastBatt) redrawBattery();
 }
 
 void StatusBar::hide() {
     barVisible = false;
     lastTime[0] = 0;
+    lastWifiBars = -2;
+    lastBatt = -200;
 }

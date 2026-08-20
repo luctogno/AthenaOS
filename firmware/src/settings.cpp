@@ -15,11 +15,11 @@ char Settings::_ssid[33] = "";
 char Settings::_pass[65] = "";
 char Settings::_tz[16] = "Rome";
 bool Settings::_ntpOn = true;
+char Settings::_lang[4] = "en";
 
 static bool apOn = false;
 static bool wasConnected = false;
 static bool restartAsk = false;
-static unsigned long staTryAt = 0;
 static bool ntpStarted = false;
 
 struct TzPreset {
@@ -57,6 +57,7 @@ void Settings::load() {
     String pass = prefs.getString("pass", "");
     String tz = prefs.getString("tz", "Rome");
     _ntpOn = prefs.getBool("ntp", true);
+    String lang = prefs.getString("lang", "en");
     prefs.end();
     strncpy(_ssid, ssid.c_str(), sizeof(_ssid) - 1);
     _ssid[sizeof(_ssid) - 1] = 0;
@@ -64,6 +65,7 @@ void Settings::load() {
     _pass[sizeof(_pass) - 1] = 0;
     strncpy(_tz, tzById(tz.c_str())->id, sizeof(_tz) - 1);
     _tz[sizeof(_tz) - 1] = 0;
+    setLang(lang.c_str());
 }
 
 void Settings::save() {
@@ -77,13 +79,13 @@ void Settings::save() {
     prefs.putString("pass", _pass);
     prefs.putString("tz", _tz);
     prefs.putBool("ntp", _ntpOn);
+    prefs.putString("lang", _lang);
     prefs.end();
 }
 
 void Settings::startAp() {
-    if (apOn) return;
+    if (apOn || !_wifiOn) return;
     WiFi.persistent(false);
-    WiFi.mode(WIFI_AP_STA);
     WiFi.softAP(WIFI_AP_SSID);
     apOn = true;
     DEBUG_PRINTF("[Settings] AP '%s' %s\n",
@@ -91,11 +93,16 @@ void Settings::startAp() {
 }
 
 void Settings::stopAp() {
-    if (!apOn) return;
     WiFi.softAPdisconnect(true);
+    WiFi.enableAP(false);
     apOn = false;
-    if (_wifiOn && _ssid[0]) WiFi.mode(WIFI_STA);
+    if (_wifiOn) WiFi.mode(WIFI_STA);
     DEBUG_PRINTLN("[Settings] AP off");
+}
+
+void Settings::setApEnabled(bool on) {
+    if (on) startAp();
+    else stopAp();
 }
 
 bool Settings::apActive() {
@@ -120,9 +127,14 @@ void Settings::begin() {
     if (_loaded) return;
     load();
     _loaded = true;
-    DEBUG_PRINTF("[Settings] vol=%u wifi=%d ssid='%s' tz=%s ntp=%d\n",
-                 (unsigned)_volume, _wifiOn, _ssid, _tz, _ntpOn);
+    DEBUG_PRINTF("[Settings] vol=%u wifi=%d ssid='%s' tz=%s ntp=%d lang=%s\n",
+                 (unsigned)_volume, _wifiOn, _ssid, _tz, _ntpOn, _lang);
     applyAudio();
+    WiFi.persistent(false);
+    apOn = false;
+    WiFi.mode(WIFI_STA);
+    WiFi.enableAP(false);
+    WiFi.softAPdisconnect(true);
     applyWifi();
 }
 
@@ -132,19 +144,11 @@ void Settings::poll() {
     bool connected = wifiConnected();
     if (connected && !wasConnected && apOn) restartAsk = true;
     wasConnected = connected;
-    if (connected) {
-        if (_ntpOn && !ntpStarted) {
-            const char *posix = tzById(_tz)->posix;
-            configTzTime(posix, "it.pool.ntp.org", "europe.pool.ntp.org", "pool.ntp.org");
-            ntpStarted = true;
-            DEBUG_PRINTF("[Settings] NTP %s (%s)\n", _tz, posix);
-        }
-        return;
-    }
-
-    if (!apOn) {
-        unsigned long wait = _ssid[0] ? 8000UL : 0UL;
-        if (millis() - staTryAt >= wait) startAp();
+    if (connected && _ntpOn && !ntpStarted) {
+        const char *posix = tzById(_tz)->posix;
+        configTzTime(posix, "it.pool.ntp.org", "europe.pool.ntp.org", "pool.ntp.org");
+        ntpStarted = true;
+        DEBUG_PRINTF("[Settings] NTP %s (%s)\n", _tz, posix);
     }
 }
 
@@ -153,7 +157,7 @@ void Settings::applyAudio() {
 }
 
 void Settings::applyWifi() {
-    staTryAt = millis();
+    WiFi.persistent(false);
     if (!_wifiOn) {
         stopAp();
         WiFi.disconnect(true);
@@ -161,13 +165,18 @@ void Settings::applyWifi() {
         DEBUG_PRINTLN("[Settings] WiFi off");
         return;
     }
-    WiFi.persistent(false);
+    if (apOn) {
+        WiFi.softAP(WIFI_AP_SSID);
+    } else {
+        WiFi.mode(WIFI_STA);
+        WiFi.enableAP(false);
+        WiFi.softAPdisconnect(true);
+    }
     if (!_ssid[0]) {
-        startAp();
+        DEBUG_PRINTLN("[Settings] WiFi on, no STA config");
         return;
     }
     DEBUG_PRINTF("[Settings] WiFi begin SSID='%s'\n", _ssid);
-    WiFi.mode(WIFI_AP_STA);
     WiFi.begin(_ssid, _pass);
 }
 
@@ -249,4 +258,28 @@ void Settings::setNtpEnabled(bool on) {
 
 bool Settings::ntpSynced() {
     return Clock::hasTime();
+}
+
+static bool langIsItValue(const char *id) {
+    return id && (id[0] == 'i' || id[0] == 'I') && (id[1] == 't' || id[1] == 'T');
+}
+
+const char *Settings::lang() {
+    return langIsIt() ? "it" : "en";
+}
+
+bool Settings::langIsIt() {
+    return langIsItValue(_lang);
+}
+
+void Settings::setLang(const char *id) {
+    const char *v = langIsItValue(id) ? "it" : "en";
+    if (strcmp(_lang, v) == 0) return;
+    strncpy(_lang, v, sizeof(_lang) - 1);
+    _lang[sizeof(_lang) - 1] = 0;
+    if (_loaded) save();
+}
+
+void Settings::toggleLang() {
+    setLang(langIsIt() ? "en" : "it");
 }

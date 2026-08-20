@@ -24,32 +24,41 @@
 #define HOME_HOLD_MS            5000
 #endif
 
+#ifndef COLOR_GOLD
+#define COLOR_GOLD              0xFEA0
+#endif
+#ifndef COLOR_SOFT
+#define COLOR_SOFT              0xFDBB
+#endif
+#ifndef COLOR_PINK
+#define COLOR_PINK              0xFB56
+#endif
+#ifndef COLOR_CYAN
+#define COLOR_CYAN              0x07FF
+#endif
 #ifndef COLOR_MAIN
-#define COLOR_MAIN              0xFE60
+#define COLOR_MAIN              COLOR_GOLD
 #endif
 #ifndef COLOR_SECOND
-#define COLOR_SECOND            0x07FD
+#define COLOR_SECOND            COLOR_CYAN
+#endif
+#ifndef COLOR_ACCENT
+#define COLOR_ACCENT            COLOR_PINK
 #endif
 #ifndef COLOR_BG
-#define COLOR_BG                0x0861
+#define COLOR_BG                0x0843
 #endif
 #ifndef COLOR_FG
 #define COLOR_FG                0xFFFF
 #endif
 #ifndef COLOR_PANEL
-#define COLOR_PANEL             0x19C8
+#define COLOR_PANEL             0x2889
 #endif
 #ifndef COLOR_MUTED
-#define COLOR_MUTED             0x8410
+#define COLOR_MUTED             0x8BD3
 #endif
 #ifndef COLOR_ERROR
 #define COLOR_ERROR             0xF800
-#endif
-#ifndef COLOR_GOLD
-#define COLOR_GOLD              COLOR_MAIN
-#endif
-#ifndef COLOR_ACCENT
-#define COLOR_ACCENT            COLOR_SECOND
 #endif
 
 #ifndef UI_FONT_FAMILY

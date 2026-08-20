@@ -25,6 +25,7 @@ public:
     static const char *apSsid();
     static void startAp();
     static void stopAp();
+    static void setApEnabled(bool on);
     static bool takeRestartAsk();
 
     static const char *tzId();
@@ -34,6 +35,11 @@ public:
     static bool ntpEnabled();
     static void setNtpEnabled(bool on);
     static bool ntpSynced();
+
+    static const char *lang();
+    static bool langIsIt();
+    static void setLang(const char *id);
+    static void toggleLang();
 
 private:
     static void load();
@@ -46,6 +52,7 @@ private:
     static char _pass[65];
     static char _tz[16];
     static bool _ntpOn;
+    static char _lang[4];
 };
 
 #endif
