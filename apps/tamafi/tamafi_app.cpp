@@ -15,11 +15,14 @@ public:
         if (!_inited) {
             tamafiGameInit();
             _inited = true;
+        } else {
+            applyTftBrightness();
         }
         state = STATE_RUNNING;
     }
 
     void resume() override {
+        applyTftBrightness();
         state = STATE_RUNNING;
     }
 

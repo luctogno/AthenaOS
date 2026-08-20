@@ -64,17 +64,24 @@ public:
             _dirty = true;
         } else if (mic) {
             unsigned long now = millis();
-            if (now - _micDrawMs >= 100) {
+            if (now - _micDrawMs >= 80) {
                 _micDrawMs = now;
-                _dirty = true;
+                _meterOnly = true;
             }
         }
     }
 
     void draw() override {
-        if (!_dirty) return;
-        _dirty = false;
-        render();
+        if (_dirty) {
+            _dirty = false;
+            _meterOnly = false;
+            render();
+            return;
+        }
+        if (_meterOnly) {
+            _meterOnly = false;
+            drawMicMeter();
+        }
     }
 
     void onTouchDown(uint16_t x, uint16_t y) override {
@@ -99,6 +106,19 @@ public:
         if (hit(x, y, SCREEN_WIDTH - 84, Y_VOL + 20, 48, 26)) {
             uint8_t v = Settings::volume();
             Settings::setVolume(v > 95 ? 100 : (uint8_t)(v + 5));
+            _dirty = true;
+            return;
+        }
+
+        if (hit(x, y, 36, Y_BRI + 20, 48, 26)) {
+            uint8_t b = Settings::brightness();
+            Settings::setBrightness(b == 0 ? 0 : (uint8_t)(b - 1));
+            _dirty = true;
+            return;
+        }
+        if (hit(x, y, SCREEN_WIDTH - 84, Y_BRI + 20, 48, 26)) {
+            uint8_t b = Settings::brightness();
+            Settings::setBrightness(b >= 2 ? 2 : (uint8_t)(b + 1));
             _dirty = true;
             return;
         }
@@ -164,21 +184,24 @@ private:
 
     static const int16_t ROW_W = SCREEN_WIDTH - 48;
     static const int16_t Y_VOL = 56;
-    static const int16_t H_VOL = 48;
-    static const int16_t Y_LANG = 108;
+    static const int16_t H_VOL = 42;
+    static const int16_t Y_BRI = 102;
+    static const int16_t H_BRI = 42;
+    static const int16_t Y_LANG = 148;
     static const int16_t H_ROW = 36;
-    static const int16_t Y_TEST = 148;
-    static const int16_t Y_WIFI = 188;
-    static const int16_t H_WIFI = 36;
-    static const int16_t Y_EXTRA = 228;
-    static const int16_t Y_TZ = 252;
-    static const int16_t H_TZ = 32;
-    static const int16_t Y_AP = 288;
-    static const int16_t H_AP = 26;
-    static const int16_t Y_FACT = 330;
-    static const int16_t H_FACT = 28;
+    static const int16_t Y_TEST = 188;
+    static const int16_t Y_WIFI = 228;
+    static const int16_t H_WIFI = 32;
+    static const int16_t Y_EXTRA = 264;
+    static const int16_t Y_TZ = 286;
+    static const int16_t H_TZ = 28;
+    static const int16_t Y_AP = 318;
+    static const int16_t H_AP = 24;
+    static const int16_t Y_FACT = 346;
+    static const int16_t H_FACT = 24;
 
     bool _dirty = true;
+    bool _meterOnly = false;
     Confirm _confirm = CONFIRM_NONE;
     bool _wifiWasOk = false;
     bool _apWasOn = false;
@@ -202,6 +225,17 @@ private:
     static const char *testStatus(bool ready, bool active, I18nId idle, I18nId busy) {
         if (!ready) return I18n::t(I18N_NA);
         return I18n::t(active ? busy : idle);
+    }
+
+    void drawMicMeter() {
+        int16_t half, sndX, micX;
+        testGeom(half, sndX, micX);
+        int16_t meterX = micX + 10;
+        int16_t meterW = half - 20;
+        Display::fillRect(meterX, Y_TEST + 26, meterW, 4, COLOR_BG);
+        uint8_t lvl = _micOn ? Mic::level() : 0;
+        int16_t mf = (int16_t)(meterW * lvl / 100);
+        if (mf > 0) Display::fillRect(meterX, Y_TEST + 26, mf, 4, COLOR_SECOND);
     }
 
     void renderConfirm() {
@@ -237,19 +271,33 @@ private:
         StatusBar::draw(I18n::t(I18N_SETTINGS));
 
         Display::fillRoundRect(24, Y_VOL, ROW_W, H_VOL, 14, COLOR_PANEL);
-        Display::drawText(40, Y_VOL + 4, I18n::t(I18N_VOLUME), COLOR_MUTED, FONT_UI);
+        Display::drawText(40, Y_VOL + 2, I18n::t(I18N_VOLUME), COLOR_MUTED, FONT_UI);
         uint8_t vol = Settings::volume();
         char volBuf[8];
         snprintf(volBuf, sizeof(volBuf), "%u%%", (unsigned)vol);
-        Display::drawText(140, Y_VOL + 4, volBuf, COLOR_MAIN, FONT_UI);
-        Display::fillRoundRect(36, Y_VOL + 24, 44, 20, 6, COLOR_BG);
-        Display::drawText(50, Y_VOL + 26, "-", COLOR_FG, FONT_UI);
+        Display::drawText(140, Y_VOL + 2, volBuf, COLOR_MAIN, FONT_UI);
+        Display::fillRoundRect(36, Y_VOL + 20, 44, 18, 6, COLOR_BG);
+        Display::drawText(50, Y_VOL + 21, "-", COLOR_FG, FONT_UI);
         int16_t barW = SCREEN_WIDTH - 200;
-        Display::fillRect(88, Y_VOL + 30, barW, 8, COLOR_BG);
+        Display::fillRect(88, Y_VOL + 25, barW, 8, COLOR_BG);
         int16_t fill = (int16_t)(barW * vol / 100);
-        if (fill > 0) Display::fillRect(88, Y_VOL + 30, fill, 8, COLOR_SECOND);
-        Display::fillRoundRect(SCREEN_WIDTH - 80, Y_VOL + 24, 44, 20, 6, COLOR_BG);
-        Display::drawText(SCREEN_WIDTH - 64, Y_VOL + 26, "+", COLOR_FG, FONT_UI);
+        if (fill > 0) Display::fillRect(88, Y_VOL + 25, fill, 8, COLOR_SECOND);
+        Display::fillRoundRect(SCREEN_WIDTH - 80, Y_VOL + 20, 44, 18, 6, COLOR_BG);
+        Display::drawText(SCREEN_WIDTH - 64, Y_VOL + 21, "+", COLOR_FG, FONT_UI);
+
+        Display::fillRoundRect(24, Y_BRI, ROW_W, H_BRI, 14, COLOR_PANEL);
+        Display::drawText(40, Y_BRI + 2, I18n::t(I18N_BRIGHTNESS), COLOR_MUTED, FONT_UI);
+        Display::drawText(SCREEN_WIDTH - 100, Y_BRI + 2, Settings::brightnessLabel(), COLOR_MAIN, FONT_UI);
+        Display::fillRoundRect(36, Y_BRI + 20, 44, 18, 6, COLOR_BG);
+        Display::drawText(50, Y_BRI + 21, "-", COLOR_FG, FONT_UI);
+        uint8_t bri = Settings::brightness();
+        int16_t segW = (int16_t)((barW - 8) / 3);
+        for (uint8_t i = 0; i < 3; i++) {
+            Display::fillRect(88 + (int16_t)i * (segW + 4), Y_BRI + 25, segW, 8,
+                              i <= bri ? COLOR_SECOND : COLOR_BG);
+        }
+        Display::fillRoundRect(SCREEN_WIDTH - 80, Y_BRI + 20, 44, 18, 6, COLOR_BG);
+        Display::drawText(SCREEN_WIDTH - 64, Y_BRI + 21, "+", COLOR_FG, FONT_UI);
 
         Display::fillRoundRect(24, Y_LANG, ROW_W, H_ROW, 12, COLOR_PANEL);
         Display::drawText(40, Y_LANG + 8, I18n::t(I18N_LANGUAGE), COLOR_FG, FONT_UI);
@@ -270,12 +318,7 @@ private:
         Display::drawText(micX + half - 78, Y_TEST + 4,
                          testStatus(micReady, _micOn, I18N_TEST, I18N_LISTENING),
                          !micReady ? COLOR_MUTED : (_micOn ? COLOR_SECOND : COLOR_GOLD), FONT_UI);
-        int16_t meterX = micX + 10;
-        int16_t meterW = half - 20;
-        Display::fillRect(meterX, Y_TEST + 26, meterW, 4, COLOR_BG);
-        uint8_t lvl = _micOn ? Mic::level() : 0;
-        int16_t mf = (int16_t)(meterW * lvl / 100);
-        if (mf > 0) Display::fillRect(meterX, Y_TEST + 26, mf, 4, COLOR_SECOND);
+        drawMicMeter();
 
         bool on = Settings::wifiEnabled();
         bool ok = Settings::wifiConnected();

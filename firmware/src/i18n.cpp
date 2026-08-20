@@ -4,6 +4,10 @@
 static const char *const STR_EN[I18N_COUNT] = {
     "Settings",
     "Volume",
+    "Brightness",
+    "Low",
+    "Mid",
+    "High",
     "WiFi",
     "Off",
     "Connected",
@@ -49,6 +53,10 @@ static const char *const STR_EN[I18N_COUNT] = {
 static const char *const STR_IT[I18N_COUNT] = {
     "Impostazioni",
     "Volume",
+    "Luminosita",
+    "Bassa",
+    "Media",
+    "Alta",
     "WiFi",
     "Off",
     "Connesso",

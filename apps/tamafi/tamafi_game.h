@@ -3,5 +3,6 @@
 
 void tamafiGameInit();
 void tamafiGameLoop();
+void applyTftBrightness();
 
 #endif

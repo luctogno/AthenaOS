@@ -207,7 +207,7 @@ static String petJson() {
     j += "},\"settings\":{\"sound\":";
     j += soundEnabled ? "true" : "false";
     j += ",\"brightness\":";
-    j += tftBrightnessIndex;
+    j += Settings::brightness();
     j += "}}";
     return j;
 }

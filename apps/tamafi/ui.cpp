@@ -4,6 +4,7 @@
 #include "ui.h"
 #include "ui_anim.h"
 #include "StepDetector.h"
+#include "settings.h"
 
 int petPosX = PET_DRAW_X;
 int petPosY = PET_DRAW_Y;
@@ -603,9 +604,11 @@ static void screenControls(int controlsIndex) {
         fb.setCursor(220, y + 6);
         fb.setTextColor(TFT_CYAN);
         switch (i) {
-            case 0:
-                fb.print(tftBrightnessIndex==0?"Low":tftBrightnessIndex==1?"Mid":"High");
+            case 0: {
+                uint8_t b = Settings::brightness();
+                fb.print(b == 0 ? "Low" : b == 1 ? "Mid" : "High");
                 break;
+            }
             case 1:
                 fb.print(ledBrightnessIndex==0?"Low":ledBrightnessIndex==1?"Mid":"High");
                 break;

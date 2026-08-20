@@ -68,8 +68,8 @@ static void probeDevices() {
     DEBUG_PRINTF("display=%d touch=%d input=%d imu=%d pedometer=%d\n",
                  displayOk, touchOk, inputOk, imuOk, pedOk);
     DEBUG_PRINTF("audio=%s mic=%s nfc=%d ble=%s pmu_cfg=%d rtc_cfg=%d sd_cfg=%d\n",
-                 audioOk ? "stub" : "0",
-                 micOk ? "stub" : "0",
+                 audioOk ? "ok" : "0",
+                 micOk ? "ok" : "0",
                  nfcOk,
                  bleOk ? "stub" : "0",
                  HAS_PMU, HAS_RTC, HAS_SD);

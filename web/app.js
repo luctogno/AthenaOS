@@ -7,7 +7,9 @@ let lang = "en";
 const I18N = {
   en: {
     navApps: "Apps", navSettings: "Settings", navInstall: "Install", navSerial: "Serial",
-    thApp: "App", thState: "State", volume: "Volume", language: "Language", wifi: "WiFi",
+    thApp: "App", thState: "State", volume: "Volume", brightness: "Brightness",
+    briLow: "Low", briMid: "Mid", briHigh: "High",
+    language: "Language", wifi: "WiFi",
     ssid: "SSID", password: "Password", passKeep: "leave empty to keep", wifiSave: "Save WiFi",
     setupLink: "Open WiFi setup", timezone: "Timezone", ntp: "NTP", reboot: "Restart",
     poweroff: "Power off", factory: "Factory reset", installHint: "Sideload is not available yet. API:",
@@ -17,14 +19,16 @@ const I18N = {
     wifiGuidePre: "Join hotspot ", wifiGuideMid: " then open ", wifiGuideEnd: "",
     foreground: "foreground", open: "Open", kill: "Kill",
     ntpOff: "NTP off", ntpOk: "NTP synced · ", ntpWait: "NTP waiting (needs WiFi)",
-    opened: "opened", killed: "killed", volSaved: "volume saved", wifiSaved: "wifi saved",
+    opened: "opened", killed: "killed", volSaved: "volume saved", briSaved: "brightness saved", wifiSaved: "wifi saved",
     apSaved: "hotspot saved", tzSaved: "timezone saved", ntpSaved: "ntp saved", langSaved: "language saved",
     restartQ: "Restart now?", powerQ: "Power off?",
     factoryQ: "Erase all settings and restart? WiFi, language and app data will be lost."
   },
   it: {
     navApps: "App", navSettings: "Impostazioni", navInstall: "Installa", navSerial: "Seriale",
-    thApp: "App", thState: "Stato", volume: "Volume", language: "Lingua", wifi: "WiFi",
+    thApp: "App", thState: "Stato", volume: "Volume", brightness: "Luminosita",
+    briLow: "Bassa", briMid: "Media", briHigh: "Alta",
+    language: "Lingua", wifi: "WiFi",
     ssid: "SSID", password: "Password", passKeep: "vuoto per mantenere", wifiSave: "Salva WiFi",
     setupLink: "Apri setup WiFi", timezone: "Fuso orario", ntp: "NTP", reboot: "Riavvia",
     poweroff: "Spegni", factory: "Ripristino di fabbrica", installHint: "Sideload non disponibile. API:",
@@ -34,7 +38,7 @@ const I18N = {
     wifiGuidePre: "Collegati all'hotspot ", wifiGuideMid: " poi apri ", wifiGuideEnd: "",
     foreground: "in primo piano", open: "Apri", kill: "Chiudi",
     ntpOff: "NTP spento", ntpOk: "NTP sincronizzato · ", ntpWait: "NTP in attesa (serve WiFi)",
-    opened: "aperta", killed: "chiusa", volSaved: "volume salvato", wifiSaved: "wifi salvato",
+    opened: "aperta", killed: "chiusa", volSaved: "volume salvato", briSaved: "luminosita salvata", wifiSaved: "wifi salvato",
     apSaved: "hotspot salvato", tzSaved: "fuso salvato", ntpSaved: "ntp salvato", langSaved: "lingua salvata",
     restartQ: "Riavviare ora?", powerQ: "Spegnere ora?",
     factoryQ: "Cancellare tutte le impostazioni e riavviare? WiFi, lingua e dati delle app andranno persi."
@@ -95,6 +99,13 @@ function applyStatic() {
     setText(el, t(el.getAttribute("data-i18n")));
   });
   if ($("pass")) $("pass").placeholder = t("passKeep");
+  const bri = $("bri");
+  if (bri) {
+    const labels = [t("briLow"), t("briMid"), t("briHigh")];
+    Array.from(bri.options).forEach((opt, i) => {
+      if (labels[i]) opt.textContent = labels[i];
+    });
+  }
 }
 
 function showTab() {
@@ -164,6 +175,11 @@ async function refresh() {
   const vol = $("vol");
   if (document.activeElement !== vol && vol.value !== String(st.volume)) vol.value = st.volume;
   setText($("volVal"), st.volume);
+  const bri = $("bri");
+  if (bri && document.activeElement !== bri) {
+    const b = st.brightness == null ? 1 : st.brightness;
+    if (bri.value !== String(b)) bri.value = String(b);
+  }
   setText($("wifiBtn"), wifiOn ? t("on") : t("off"));
   if (document.activeElement !== $("ssid") && $("ssid").value !== (st.ssid || "")) {
     $("ssid").value = st.ssid || "";
@@ -197,6 +213,10 @@ $("vol").oninput = () => { setText($("volVal"), $("vol").value); };
 $("vol").onchange = async () => {
   await post("/api/settings", "volume=" + $("vol").value);
   toast(t("volSaved"));
+};
+$("bri").onchange = async () => {
+  await post("/api/settings", "brightness=" + $("bri").value);
+  toast(t("briSaved"));
 };
 $("wifiBtn").onclick = async () => {
   await post("/api/settings", "wifiOn=" + (wifiOn ? "0" : "1"));

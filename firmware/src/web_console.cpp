@@ -90,6 +90,8 @@ static String statusJson() {
     jsonEscapeAppend(j, setupUrl().c_str());
     j += "\"}},\"settings\":{\"volume\":";
     j += Settings::volume();
+    j += ",\"brightness\":";
+    j += Settings::brightness();
     j += ",\"wifiOn\":";
     j += Settings::wifiEnabled() ? "true" : "false";
     j += ",\"ssid\":\"";
@@ -246,6 +248,9 @@ static void handleSettings() {
     if (console.hasArg("volume")) {
         Settings::setVolume((uint8_t)console.arg("volume").toInt());
     }
+    if (console.hasArg("brightness")) {
+        Settings::setBrightness((uint8_t)console.arg("brightness").toInt());
+    }
     if (console.hasArg("wifiOn")) {
         Settings::setWifiEnabled(console.arg("wifiOn") == "1" || console.arg("wifiOn") == "true");
     }
@@ -320,6 +325,25 @@ static void beginPortal() {
     DEBUG_PRINTF("[WebConsole] captive -> %s\n", setupUrl().c_str());
 }
 
+static uint32_t loggedStaIp = 0;
+
+static void logListenUrl(const IPAddress &ip) {
+    if (!(uint32_t)ip) return;
+    String s = ip.toString();
+    DEBUG_PRINTF("[WebConsole] http://%s:%d/\n", s.c_str(), WEB_CONSOLE_PORT);
+}
+
+static void maybeLogStaUrl() {
+    if (WiFi.status() != WL_CONNECTED) {
+        loggedStaIp = 0;
+        return;
+    }
+    uint32_t v = (uint32_t)WiFi.localIP();
+    if (!v || v == loggedStaIp) return;
+    loggedStaIp = v;
+    logListenUrl(WiFi.localIP());
+}
+
 static void beginServer() {
     console.on("/", HTTP_GET, handleRoot);
     console.on("/index.html", HTTP_GET, handleRoot);
@@ -349,8 +373,8 @@ static void beginServer() {
     });
     console.begin();
     started = true;
-    DEBUG_PRINTF("[WebConsole] http://%s:%d/\n",
-                 WiFi.softAPIP().toString().c_str(), WEB_CONSOLE_PORT);
+    maybeLogStaUrl();
+    if (Settings::apActive()) logListenUrl(WiFi.softAPIP());
 }
 
 void WebConsole::poll() {
@@ -358,6 +382,7 @@ void WebConsole::poll() {
         if (!Settings::apActive() && WiFi.status() != WL_CONNECTED) return;
         beginServer();
     }
+    maybeLogStaUrl();
     if (Settings::apActive()) beginPortal();
     else stopPortal();
     if (portalOn) {

@@ -70,6 +70,12 @@
 #ifndef WIFI_AP_SSID
 #define WIFI_AP_SSID            "AthenaOS"
 #endif
+#ifndef I2S_PA_PIN
+#define I2S_PA_PIN              PIN_NONE
+#endif
+#ifndef I2S_SAMPLE_RATE
+#define I2S_SAMPLE_RATE         16000
+#endif
 
 #ifndef DISABLE_DEBUG
 #include "log_buffer.h"

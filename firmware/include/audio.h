@@ -12,6 +12,7 @@ public:
     static uint8_t volume() { return _volume; }
     static void playTest(uint16_t ms = 900);
     static bool testActive();
+    static void poll();
 
 private:
     static bool _ready;

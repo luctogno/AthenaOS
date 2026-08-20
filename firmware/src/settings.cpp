@@ -2,6 +2,7 @@
 #include "audio.h"
 #include "boards/board.h"
 #include "clock.h"
+#include "display.h"
 #include "i18n.h"
 #include "power.h"
 
@@ -13,6 +14,7 @@
 
 bool Settings::_loaded = false;
 uint8_t Settings::_volume = 70;
+uint8_t Settings::_brightness = 1;
 bool Settings::_wifiOn = true;
 char Settings::_ssid[33] = "";
 char Settings::_pass[65] = "";
@@ -55,6 +57,8 @@ void Settings::load() {
     }
     _volume = prefs.getUChar("vol", 70);
     if (_volume > 100) _volume = 100;
+    _brightness = prefs.getUChar("bri", 1);
+    if (_brightness > 2) _brightness = 1;
     _wifiOn = prefs.getBool("wifion", true);
     String ssid = prefs.getString("ssid", "");
     String pass = prefs.getString("pass", "");
@@ -77,6 +81,7 @@ void Settings::save() {
         return;
     }
     prefs.putUChar("vol", _volume);
+    prefs.putUChar("bri", _brightness);
     prefs.putBool("wifion", _wifiOn);
     prefs.putString("ssid", _ssid);
     prefs.putString("pass", _pass);
@@ -136,9 +141,10 @@ void Settings::begin() {
     if (_loaded) return;
     load();
     _loaded = true;
-    DEBUG_PRINTF("[Settings] vol=%u wifi=%d ssid='%s' tz=%s ntp=%d lang=%s\n",
-                 (unsigned)_volume, _wifiOn, _ssid, _tz, _ntpOn, _lang);
+    DEBUG_PRINTF("[Settings] vol=%u bri=%u wifi=%d ssid='%s' tz=%s ntp=%d lang=%s\n",
+                 (unsigned)_volume, (unsigned)_brightness, _wifiOn, _ssid, _tz, _ntpOn, _lang);
     applyAudio();
+    applyDisplay();
     apOn = false;
     Serial.flush();
     delay(50);
@@ -161,6 +167,10 @@ void Settings::poll() {
 
 void Settings::applyAudio() {
     Audio::setVolume(_volume);
+}
+
+void Settings::applyDisplay() {
+    Display::setBrightness(brightnessValue());
 }
 
 void Settings::applyWifi() {
@@ -191,6 +201,28 @@ void Settings::setVolume(uint8_t percent) {
     _volume = percent;
     save();
     applyAudio();
+}
+
+uint8_t Settings::brightness() {
+    return _brightness;
+}
+
+uint8_t Settings::brightnessValue() {
+    static const uint8_t pwm[3] = { 60, 150, 255 };
+    return pwm[_brightness > 2 ? 2 : _brightness];
+}
+
+const char *Settings::brightnessLabel() {
+    if (_brightness == 0) return I18n::t(I18N_BRI_LOW);
+    if (_brightness == 1) return I18n::t(I18N_BRI_MID);
+    return I18n::t(I18N_BRI_HIGH);
+}
+
+void Settings::setBrightness(uint8_t index) {
+    if (index > 2) index = 2;
+    _brightness = index;
+    save();
+    applyDisplay();
 }
 
 bool Settings::wifiEnabled() {

@@ -11,9 +11,11 @@ public:
     static void startTest(uint16_t ms = 1800);
     static bool testActive();
     static uint8_t level();
+    static void poll();
 
 private:
     static bool _ready;
+    static uint8_t _level;
     static unsigned long _testUntil;
 };
 

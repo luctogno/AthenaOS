@@ -9,6 +9,7 @@
 #include "ui.h"
 #include "ui_anim.h"
 #include "display.h"
+#include "settings.h"
 #include "tamafi_input.h"
 #include "Sprite.h"
 #include "Web.h"
@@ -224,9 +225,8 @@ void sndHatch()       { if (!soundEnabled) return; sndIndex = 6; sndStep = 0; }
 
 // ---------- TFT brightness ----------
 void applyTftBrightness() {
-  uint8_t val = (tftBrightnessIndex == 0) ? 60 :
-                (tftBrightnessIndex == 1) ? 150 : 255;
-  Display::setBrightness(val);
+  tftBrightnessIndex = Settings::brightness();
+  Display::setBrightness(Settings::brightnessValue());
 }
 
 // ---------- WiFi scan ----------
@@ -952,8 +952,8 @@ void handleButtons() {
       sndClick();
       switch (controlsIndex) {
         case 0:
-          tftBrightnessIndex = (tftBrightnessIndex + 1) % 3;
-          applyTftBrightness();
+          Settings::setBrightness((uint8_t)((Settings::brightness() + 1) % 3));
+          tftBrightnessIndex = Settings::brightness();
           break;
         case 1:
           ledBrightnessIndex = (ledBrightnessIndex + 1) % 3;
@@ -1063,6 +1063,7 @@ void tamafiGameInit() {
 
   prefs.begin("tamafi2", false);
   loadState();
+  tftBrightnessIndex = Settings::brightness();
   applyTftBrightness();
   applyLedBrightness();
 

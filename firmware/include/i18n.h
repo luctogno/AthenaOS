@@ -6,6 +6,10 @@
 enum I18nId : uint8_t {
     I18N_SETTINGS = 0,
     I18N_VOLUME,
+    I18N_BRIGHTNESS,
+    I18N_BRI_LOW,
+    I18N_BRI_MID,
+    I18N_BRI_HIGH,
     I18N_WIFI,
     I18N_OFF,
     I18N_CONNECTED,

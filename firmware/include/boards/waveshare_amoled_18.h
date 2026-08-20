@@ -65,7 +65,7 @@
 #define STEP_VALLEY_G           0.92f
 #define STEP_MIN_INTERVAL_MS    280
 
-// --- Audio / mic (ES8311 codec; driver stub for now) ---
+// --- Audio / mic (ES8311 codec, duplex I2S) ---
 #define HAS_AUDIO               1
 #define HAS_MIC                 1
 #define AUDIO_I2C_ADDR          0x18
@@ -74,7 +74,8 @@
 #define I2S_LRC_PIN             45
 #define I2S_DIN_PIN             8       // MCU -> codec (speaker)
 #define I2S_DOUT_PIN            10      // codec -> MCU (mic)
-#define I2S_SAMPLE_RATE         44100
+#define I2S_PA_PIN              46      // NS4150B PA enable, active-high
+#define I2S_SAMPLE_RATE         16000
 #define I2S_BITS_PER_SAMPLE     16
 
 // --- BLE (on-chip radio, no GPIO) ---

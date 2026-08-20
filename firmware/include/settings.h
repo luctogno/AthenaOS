@@ -8,10 +8,17 @@ public:
     static void begin();
     static void poll();
     static void applyAudio();
+    static void applyDisplay();
     static void applyWifi();
 
     static uint8_t volume();
     static void setVolume(uint8_t percent);
+
+    // Screen brightness: 0=low, 1=mid, 2=high
+    static uint8_t brightness();
+    static uint8_t brightnessValue();
+    static const char *brightnessLabel();
+    static void setBrightness(uint8_t index);
 
     static bool wifiEnabled();
     static void setWifiEnabled(bool on);
@@ -48,6 +55,7 @@ private:
 
     static bool _loaded;
     static uint8_t _volume;
+    static uint8_t _brightness;
     static bool _wifiOn;
     static char _ssid[33];
     static char _pass[65];
